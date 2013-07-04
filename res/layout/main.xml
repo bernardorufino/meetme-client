@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:gravity="center_vertical">
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/new_group_text"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:textSize="18dp" />
+
+    <Button
+        android:onClick="newGroupClick"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/new_group_button"
+        android:id="@+id/newGroupButton"
+        android:layout_gravity="center" />
+
+    <Space
+        android:layout_width="fill_parent"
+        android:layout_height="20dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/join_group_text"
+        android:layout_gravity="center"
+        android:textSize="18dp"
+        android:gravity="center_horizontal" />
+
+    <Button
+        android:onClick="joinGroupClick"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/join_group_button"
+        android:id="@+id/joinGroupButton"
+        android:layout_gravity="center" />
+
+    <Space
+        android:layout_width="fill_parent"
+        android:layout_height="40dp" />
+</LinearLayout>
+

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MeetMe</string>
+    <string name="no_map_error_message">Mapa indisponível</string>
+    <string name="new_group_text">Ninguém criou grupo ainda? Crie um novo grupo para se encontrarem!</string>
+    <string name="new_group_button">Novo Grupo</string>
+    <string name="join_group_text">Você tem o código de um grupo já criado? Então entre nesse grupo!</string>
+    <string name="join_group_button">Entrar em Grupo</string>
+    <string name="map_activity_label">Encontrar Grupo</string>
+    <string name="new_group_activity_label">Novo Grupo</string>
+    <string name="join_group_activity_label">Entrar em Grupo</string>
+</resources>
