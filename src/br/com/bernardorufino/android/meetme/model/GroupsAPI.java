@@ -13,8 +13,10 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 public class GroupsAPI {
+    private static final boolean LOG = false;
     private static final String API_ADDRESS = "http://meetme-server.herokuapp.com/";
     private static final String CHARSET = "UTF-8";
+    private static volatile boolean isRequestOpen = false;
 
     public static JSONObject create(String userName, double latitude, double longitude) throws IOException {
         return getJSON(
@@ -53,9 +55,16 @@ public class GroupsAPI {
         return response != null && response.equals("true");
     }
 
+    public static boolean isRequestOpen() {
+        // Only read, don't need to synchronize
+        return isRequestOpen;
+    }
+
     private static String request(HttpURLConnection connection) throws IOException {
         connection.setDoInput(true);
+        isRequestOpen = true;
         connection.connect();
+        isRequestOpen = false;
         if (connection.getResponseCode() != 200) return null;
         return IOUtils.toString(connection.getInputStream());
     }
@@ -63,10 +72,10 @@ public class GroupsAPI {
     private static String get(String url) throws IOException {
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            Helper.log("Openning " + url);
+            if (LOG) Helper.log("Openning " + url);
             connection.setRequestMethod("GET");
             String response = request(connection);
-            Helper.log("Received " + response);
+            if (LOG) Helper.log("Received " + response);
             return response;
         } catch (MalformedURLException e) {
             return null;

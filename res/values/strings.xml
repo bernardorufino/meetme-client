@@ -9,4 +9,10 @@
     <string name="map_activity_label">Encontrar Grupo</string>
     <string name="new_group_activity_label">Novo Grupo</string>
     <string name="join_group_activity_label">Entrar em Grupo</string>
+    <string name="new_group_message">Digite o nome que deseja que seus amigos visualizem</string>
+    <string name="name_hint">Nome</string>
+    <string name="create_group_button">Criar Grupo</string>
+    <string name="enter_group_password_message">Digite o código do grupo existente</string>
+    <string name="group_password_hint">Código</string>
+    <string name="join_group_with_password_button">Entrar</string>
 </resources>

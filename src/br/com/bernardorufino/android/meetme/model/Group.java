@@ -1,20 +1,22 @@
 package br.com.bernardorufino.android.meetme.model;
 
+import br.com.bernardorufino.android.meetme.helper.Helper;
 import com.google.android.gms.maps.model.LatLng;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class Group {
+public class Group implements Serializable {
 
     public static class UnknownResponseException extends RuntimeException { /* Empty */ }
     public static class UserNotInGroupException extends RuntimeException { /* Empty */ }
 
-    public static Group create(User user) throws IOException, JSONException {
+    public static Group create(User user) throws IOException {
         try {
             LatLng p = user.getPosition();
             JSONObject response = GroupsAPI.create(user.getName(), p.latitude, p.longitude);
@@ -52,12 +54,12 @@ public class Group {
     private final String password;
     private Collection<User> users;
 
-    private Group(String password) {
+    public Group(String password) {
         this.password = password;
         this.users = new ArrayList<>();
     }
 
-    private void update() throws IOException {
+    public void update() throws IOException {
         JSONObject data = GroupsAPI.retrieve(password);
         try {
             users.clear();
@@ -75,6 +77,14 @@ public class Group {
         }
     }
 
+    public User getUser(int id) throws IOException {
+        update();
+        for (User user : users) {
+            if (user.getID() == id) return user;
+        }
+        return null;
+    }
+
     public void updateUserPosition(User user) throws IOException {
         if (!users.contains(user)) { throw new UserNotInGroupException(); }
         LatLng p = user.getPosition();
@@ -83,5 +93,9 @@ public class Group {
 
     public String getPassword() {
         return password;
+    }
+
+    public Collection<User> getUsers() {
+        return users;
     }
 }
