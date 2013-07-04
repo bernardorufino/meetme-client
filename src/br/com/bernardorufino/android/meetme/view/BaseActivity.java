@@ -5,6 +5,7 @@ import android.content.Intent;
 
 public abstract class BaseActivity extends Activity {
 
+
     // Stuff to be used by other activities
 
     protected void goTo(Class<?> cls) {

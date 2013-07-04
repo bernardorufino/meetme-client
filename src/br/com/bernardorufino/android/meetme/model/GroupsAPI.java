@@ -13,7 +13,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 public class GroupsAPI {
-    private static final boolean LOG = false;
+    private static final boolean LOG = true;
     private static final String API_ADDRESS = "http://meetme-server.herokuapp.com/";
     private static final String CHARSET = "UTF-8";
     private static volatile boolean isRequestOpen = false;

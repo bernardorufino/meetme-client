@@ -8,6 +8,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import br.com.bernardorufino.android.meetme.R;
 import br.com.bernardorufino.android.meetme.helper.Helper;
@@ -30,16 +32,16 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 import static br.com.bernardorufino.android.meetme.Definitions.*;
 
+//TODO: test isResquestOpen() with Thread.sleep()
 public class MapActivity extends BaseActivity {
-    private static final long UPDATE_MAP_INTERVAL = 200;
+    private static final long UPDATE_MAP_INTERVAL = 2000;
     //Needs a safe delay from the completion of camera animation to next animation
-    private static final long CAMERA_ANIMATION = UPDATE_MAP_INTERVAL - 25;
-    private static final long UPDATE_LOCATION_INTERVAL = 1000;
+    private static final long CAMERA_ANIMATION = (long) (0.95 * UPDATE_MAP_INTERVAL - 25);
+    private static final long UPDATE_LOCATION_INTERVAL = UPDATE_MAP_INTERVAL * 2;
     private static final long MIN_UPDATE_LOCATION_INTERVAL = 500;
 
     private GoogleMap map;
@@ -52,15 +54,32 @@ public class MapActivity extends BaseActivity {
     private LocationClient locationClient;
     private LocationRequest locationRequest;
     private LatLng position;
+    private TextView userMessage;
+    private ProgressBar loadingView;
+    private enum MessageOrigin { LocationUpdates, MyLocation, Other }
 
     private class MapUpdater extends TimedTask {
+        private Exception exception;
 
         public void work() {
-            try { group.update(); }
-            catch (IOException e) { ViewHelper.flash(MapActivity.this, "deu merda no update"); }
+            try {
+                group.update();
+                exception = null;
+            } catch (IOException e) {
+                exception = e;
+            }
         }
 
         public void onComplete() {
+            // Check wheter the request was successful, if it was then hide user
+            // messages, if not show corresponding messages
+            if (exception != null) {
+                if (Helper.isInternetException(exception))
+                    loadingMessage("Esperando internet voltar", MessageOrigin.LocationUpdates);
+                else userMessage("Erro na recuperação das posições", MessageOrigin.LocationUpdates);
+                Helper.logException(exception);
+                return;
+            } else { hideMessage(MessageOrigin.LocationUpdates); }
             // If it's in the middle of a request, wait in order not to pile up
             if (GroupsAPI.isRequestOpen()) return;
             map.clear();
@@ -82,6 +101,7 @@ public class MapActivity extends BaseActivity {
     private class LocationHandler extends LocationAdapter {
 
         public void onLocationChanged(final Location location) {
+            hideMessage(MessageOrigin.MyLocation);
             position = new LatLng(location.getLatitude(), location.getLongitude());
             new AsyncTask<Void, Void, Void>() {
                 protected Void doInBackground(Void... params) {
@@ -103,14 +123,13 @@ public class MapActivity extends BaseActivity {
     }
 
     public void onCreate(Bundle savedInstanceState) {
-        Helper.log("onCreate()");
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map);
 
         // Enable navigate up button
         getActionBar().setDisplayHomeAsUpEnabled(true);
 
+        // Check wheter has play services
         if (!Helper.hasPlayServices(this)) {
             ViewHelper.flash(this, "Nao tem play =(");
             return;
@@ -120,6 +139,8 @@ public class MapActivity extends BaseActivity {
         FragmentManager manager = getFragmentManager();
         mapFragment = (MapFragment) manager.findFragmentById(R.id.map);
         groupPasswordText = (TextView) findViewById(R.id.groupPasswordText);
+        userMessage = (TextView) findViewById(R.id.userMessage);
+        loadingView = (ProgressBar) findViewById(R.id.loadingView);
 
         // Sets up group and user
         Intent intent = getIntent();
@@ -144,25 +165,26 @@ public class MapActivity extends BaseActivity {
     }
 
     protected void onStart() {
-        Helper.log("onStart()");
         super.onStart();
-        locationClient.connect();
+        loadingMessage("Carregando localizações", MessageOrigin.LocationUpdates);
         mapUpdater.fire(UPDATE_MAP_INTERVAL);
+        loadingMessage("Aguardando minha posição", MessageOrigin.MyLocation);
+        locationClient.connect();
     }
 
     protected void onStop() {
-        Helper.log("onStop()");
         mapUpdater.cancel();
         locationClient.disconnect();
         super.onStop();
     }
 
     protected void onDestroy() {
-        Helper.log("onDestroy()");
+        // Handle map destruction, etc.
         super.onDestroy();
     }
 
     public void createMap() {
+        loadingMessage("Carregando mapa");
         if (map == null) {
             map = mapFragment.getMap();
             if (map == null) {
@@ -177,6 +199,7 @@ public class MapActivity extends BaseActivity {
                     .build();
             map.moveCamera(CameraUpdateFactory.newCameraPosition(camera));
         }
+        hideMessage();
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -186,6 +209,79 @@ public class MapActivity extends BaseActivity {
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    //TODO: Refactor! Extract this messaging system, maybe in BaseActivity
+    //TODO: Implement priority and immediate update
+    // User messages
+
+    private class UserMessage {
+        String text;
+        boolean loading;
+
+        private UserMessage(String text, boolean loading) {
+            this.text = text;
+            this.loading = loading;
+        }
+    }
+
+    private Map<MessageOrigin, UserMessage> messages = new LinkedHashMap<>();
+
+    // Handling user messages in a queue, when there is a message being displayed, 
+    // it will wait until it disappears to show the new one, much like the following timeline
+    //
+    // Display command:  A B - - - - - C D - - - - - E - - - - F - - -
+    //    Hide command:  - - - A - B - - - - D - C - - - - E - - - - F
+    //       User sees:  A A A B B - - C C C C C - - E E E - - F F F -
+    //
+    // Note that if a message hides before having the chance to be displayed, it will never be displayed
+    // New messages of the same origin erases the old one and are put as a fresh message
+
+    // Messages to the user!
+
+    private void updateMessage() {
+        if (messages.size() > 0) {
+            UserMessage message = messages.values().iterator().next();
+            userMessage.setText(message.text);
+            userMessage.setVisibility(View.VISIBLE);
+            loadingView.setVisibility(message.loading ? View.VISIBLE : View.GONE);
+        } else {
+            userMessage.setText("");
+            // Using INVISIBLE instead of GONE to preserve height of container
+            userMessage.setVisibility(View.INVISIBLE);
+            loadingView.setVisibility(View.GONE);
+        }
+    }
+
+    private void insertMessage(MessageOrigin origin, UserMessage message) {
+        messages.remove(origin);
+        messages.put(origin, message);
+        if (messages.size() == 1) updateMessage();
+    }
+
+    private void userMessage(String message, MessageOrigin origin) {
+        insertMessage(origin, new UserMessage(message, false));
+    }
+
+    private void userMessage(String message) {
+        userMessage(message, MessageOrigin.Other);
+    }
+
+    private void loadingMessage(String message, MessageOrigin origin) {
+        insertMessage(origin, new UserMessage(message, true));
+    }
+
+    private void loadingMessage(String message) {
+        loadingMessage(message, MessageOrigin.Other);
+    }
+
+    private void hideMessage(MessageOrigin origin) {
+        messages.remove(origin);
+        updateMessage();
+    }
+
+    private void hideMessage() {
+        hideMessage(MessageOrigin.Other);
     }
 
 }

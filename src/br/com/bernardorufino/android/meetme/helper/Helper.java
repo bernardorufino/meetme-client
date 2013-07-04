@@ -5,6 +5,8 @@ import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
+import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Helper {
@@ -19,6 +21,11 @@ public class Helper {
         Log.d(LOG_TAG, message);
     }
 
+    public static void logException(Exception e) {
+        if (e != null)
+            Log.e(LOG_TAG, e.toString(), e);
+    }
+
     public static long time() {
         long window, now = System.nanoTime();
         synchronized (timer) {
@@ -30,6 +37,11 @@ public class Helper {
 
     public static long millisTime() {
         return time() / 1000000;
+    }
+
+    public static boolean isInternetException(Exception e) {
+        return (e instanceof UnknownHostException)
+            || (e instanceof ConnectException);
     }
 
     // Prevents instantiation
