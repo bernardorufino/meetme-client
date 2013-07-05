@@ -13,10 +13,15 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 public class GroupsAPI {
-    private static final boolean LOG = true;
+    private static final boolean LOG = false;
     private static final String API_ADDRESS = "http://meetme-server.herokuapp.com/";
     private static final String CHARSET = "UTF-8";
     private static volatile boolean isRequestOpen = false;
+
+    //TODO: Handle group name in exceptions
+    public static class NoGroupException extends RuntimeException { /* Empty */ }
+
+    public static class NoUserException extends RuntimeException { /* Empty */ }
 
     public static JSONObject create(String userName, double latitude, double longitude) throws IOException {
         return getJSON(
@@ -27,7 +32,8 @@ public class GroupsAPI {
         );
     }
 
-    public static JSONObject join(String groupPassword, String userName, double latitude, double longitude) throws IOException {
+    public static JSONObject join(String groupPassword, String userName,
+                                  double latitude, double longitude) throws IOException {
         return getJSON(
             API_ADDRESS +
             "groups/join/" + encode(groupPassword) +
@@ -44,7 +50,8 @@ public class GroupsAPI {
         );
     }
 
-    public static boolean update(String groupPassword, int userID, double latitude, double longitude) throws IOException {
+    public static boolean update(String groupPassword, int userID,
+                                 double latitude, double longitude) throws IOException {
         String response = get(
             API_ADDRESS +
             "groups/update/" + encode(groupPassword) +
@@ -75,6 +82,11 @@ public class GroupsAPI {
             if (LOG) Helper.log("Openning " + url);
             connection.setRequestMethod("GET");
             String response = request(connection);
+            //TODO: Remove this logic from here, this method shoud be domain logic agnostic
+            if (response != null) {
+                if (response.equals("nogroup")) throw new NoGroupException();
+                else if (response.equals("nouser")) throw new NoUserException();
+            }
             if (LOG) Helper.log("Received " + response);
             return response;
         } catch (MalformedURLException e) {

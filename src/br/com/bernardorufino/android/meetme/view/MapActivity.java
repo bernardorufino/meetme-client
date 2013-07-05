@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 import br.com.bernardorufino.android.meetme.R;
 import br.com.bernardorufino.android.meetme.helper.Helper;
 import br.com.bernardorufino.android.meetme.helper.MapHelper;
@@ -28,15 +29,13 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.*;
 
 import java.io.IOException;
 import java.util.*;
 
 import static br.com.bernardorufino.android.meetme.Definitions.*;
+import static com.google.android.gms.maps.GoogleMap.*;
 
 public class MapActivity extends BaseActivity {
     private static final long UPDATE_MAP_INTERVAL = 500;
@@ -57,6 +56,11 @@ public class MapActivity extends BaseActivity {
     private LatLng position;
     private TextView userMessage;
     private ProgressBar loadingView;
+    private ToggleButton toggleAutoZoom;
+    private boolean autoZoom = true;
+    // int user id => marker
+    private Map<Integer, Marker> userMarkersMap = new HashMap<>();
+
     private enum MessageOrigin { LocationUpdates, MyLocation, Other }
 
     private class MapUpdater extends TimedTask {
@@ -71,31 +75,60 @@ public class MapActivity extends BaseActivity {
             }
         }
 
+        private void handleException(Exception exception) {
+            if (Helper.isInternetException(exception))
+                loadingMessage("Esperando conexão", MessageOrigin.LocationUpdates);
+            else userMessage("Erro na recuperação das posições", MessageOrigin.LocationUpdates);
+            Helper.logException(exception);
+        }
+
         public void onComplete() {
             // Check wheter the request was successful, if it was then hide user
             // messages, if not show corresponding messages
             if (exception != null) {
-                if (Helper.isInternetException(exception))
-                    loadingMessage("Esperando internet voltar", MessageOrigin.LocationUpdates);
-                else userMessage("Erro na recuperação das posições", MessageOrigin.LocationUpdates);
-                Helper.logException(exception);
+                toggleAutoZoom.setEnabled(false);
+                handleException(exception);
                 return;
-            } else { hideMessage(MessageOrigin.LocationUpdates); }
+            } else {
+                toggleAutoZoom.setEnabled(true);
+                hideMessage(MessageOrigin.LocationUpdates);
+            }
             // If it's in the middle of a request, wait in order not to pile up
             if (GroupsAPI.isRequestOpen()) return;
-            map.clear();
-            Collection<Marker> markers = new ArrayList<>();
-            Point p = map.getProjection().toScreenLocation(map.getCameraPosition().target);
-            for (User user : group.getUsers()) {
-                p = map.getProjection().toScreenLocation(user.getPosition());
-                Marker marker = map.addMarker(new MarkerOptions()
-                    .position(user.getPosition())
-                    .title(user.getName()));
-                markers.add(marker);
+            updateMarkers();
+            if (autoZoom) {
+                LatLng center = (position != null) ? position : map.getCameraPosition().target;
+                CameraUpdate update = MapHelper.displayMarkers(map, center, userMarkersMap.values());
+                map.animateCamera(update, (int) CAMERA_ANIMATION, null);
             }
-            LatLng center = (position != null) ? position : map.getCameraPosition().target;
-            CameraUpdate update = MapHelper.displayMarkers(map, center, markers);
-            map.animateCamera(update, (int) CAMERA_ANIMATION, null);
+        }
+    }
+
+    private void updateMarkers() {
+        // Set to keep track of the ones to be removed
+        Set<Integer> usersWithMarker = new HashSet<>(userMarkersMap.keySet());
+        // Adds new markers and updates existing ones
+        for (User groupUser : group.getUsers()) {
+            int id = groupUser.getID();
+            Marker marker = userMarkersMap.get(id);
+            if (marker == null) { // Add new marker
+                MarkerOptions options = new MarkerOptions()
+                    .position(groupUser.getPosition())
+                    .title(groupUser.getName());
+                if (groupUser.equals(user)) {
+                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+                }
+                marker = map.addMarker(options);
+                userMarkersMap.put(id, marker);
+            } else { // Update position of existing one
+                usersWithMarker.remove(id);
+                marker.setPosition(groupUser.getPosition());
+            }
+        }
+        // Delete remaining markers on screen
+        for (int id : usersWithMarker) {
+            userMarkersMap.get(id).remove();
+            userMarkersMap.remove(id);
         }
     }
 
@@ -142,6 +175,10 @@ public class MapActivity extends BaseActivity {
         groupPasswordText = (TextView) findViewById(R.id.groupPasswordText);
         userMessage = (TextView) findViewById(R.id.userMessage);
         loadingView = (ProgressBar) findViewById(R.id.loadingView);
+        toggleAutoZoom = (ToggleButton) findViewById(R.id.toggleAutoZoom);
+
+        // Sets inital state, if you want to change, change autoZoom field initial value above
+        toggleAutoZoom.setChecked(autoZoom);
 
         // Sets up group and user
         Intent intent = getIntent();
@@ -179,10 +216,15 @@ public class MapActivity extends BaseActivity {
         super.onStop();
     }
 
-    protected void onDestroy() {
-        // Handle map destruction, etc.
-        super.onDestroy();
-    }
+    private OnMarkerClickListener markerClickHandler = new OnMarkerClickListener() {
+
+        public boolean onMarkerClick(Marker marker) {
+            toggleAutoZoom.setChecked(false);
+            toggleAutoZoomClick(toggleAutoZoom);
+            return false;
+        }
+
+    };
 
     public void createMap() {
         loadingMessage("Carregando mapa");
@@ -192,15 +234,21 @@ public class MapActivity extends BaseActivity {
                 ViewHelper.flash(this, R.string.no_map_error_message);
                 return;
             }
-            map.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+            map.setMapType(MAP_TYPE_HYBRID);
             CameraPosition camera = new CameraPosition.Builder()
                     .target(INITIAL_POSITION)
                     .zoom(15)
                     .tilt(30)
                     .build();
             map.moveCamera(CameraUpdateFactory.newCameraPosition(camera));
+            map.setOnMarkerClickListener(markerClickHandler);
         }
         hideMessage();
+    }
+
+    public void toggleAutoZoomClick(View view) {
+        // Explicitly using boolean field / listener for scalability purposes
+        autoZoom = toggleAutoZoom.isChecked();
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {

@@ -16,13 +16,16 @@
         android:gravity="center_horizontal" />
 
     <EditText
-        android:layout_width="match_parent"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:id="@+id/userNameInput"
         android:layout_gravity="center"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
         android:hint="@string/name_hint" />
+
+    <Space
+        android:layout_width="fill_parent"
+        android:layout_height="20dp"
+        android:id="@+id/space" />
 
     <Button
         android:onClick="createGroupClick"

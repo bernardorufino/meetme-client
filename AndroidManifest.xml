@@ -77,6 +77,14 @@
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyAQbHB5IEaW-E2diEWTgoWeJejTRcToGYM" />
 
+        <!-- Production -->
+        <!-- 2F:AF:F8:DC:1B:FD:F9:01:66:FC:48:D2:07:01:D2:9D:CC:31:D9:9C;br.com.bernardorufino.android.meetme -->
+        <!-- AIzaSyDnKetEQTVIbQxK-j7vwjj-BqInaA7jgV0 -->
+
+        <!-- Debug -->
+        <!-- ED:38:9C:D2:9B:D3:56:1D:3F:C0:5D:41:79:EA:1F:9A:90:FB:8F:07;br.com.bernardorufino.android.meetme -->
+        <!-- AIzaSyAQbHB5IEaW-E2diEWTgoWeJejTRcToGYM -->
+
     </application>
 
 </manifest>

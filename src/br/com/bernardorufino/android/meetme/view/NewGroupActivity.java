@@ -8,18 +8,13 @@ import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-import br.com.bernardorufino.android.meetme.Definitions;
 import br.com.bernardorufino.android.meetme.R;
 import br.com.bernardorufino.android.meetme.helper.Helper;
 import br.com.bernardorufino.android.meetme.helper.ViewHelper;
 import br.com.bernardorufino.android.meetme.model.Group;
 import br.com.bernardorufino.android.meetme.model.User;
-import com.google.android.gms.maps.model.LatLng;
-import org.json.JSONException;
 
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.UnknownHostException;
 
 import static br.com.bernardorufino.android.meetme.Definitions.*;
 
@@ -38,14 +33,30 @@ public class NewGroupActivity extends BaseActivity {
 
     }
 
+    private String userName;
+
+    private boolean validateInput() {
+        boolean valid = true;
+
+        // User name
+        userNameInput.setError(null);
+        userName = userNameInput.getText().toString().trim();
+        if (userName.isEmpty()) {
+            userNameInput.setError("Seu nome não pode ser vazio");
+            valid = false;
+        }
+
+        return valid;
+    }
+
     public void createGroupClick(View view) {
+        if (!validateInput()) return;
         final ProgressDialog dialog = ProgressDialog.show(this, "Novo Groupo", "Criando grupo");
         new AsyncTask<Void, Void, Intent>() {
             private Exception exception;
 
             protected Intent doInBackground(Void... params) {
                 try {
-                    String userName = userNameInput.getText().toString();
                     User user = new User(userName, INITIAL_POSITION);
                     Group group = Group.create(user);
                     Intent intent = new Intent(NewGroupActivity.this, MapActivity.class);
