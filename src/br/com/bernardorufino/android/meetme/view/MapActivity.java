@@ -38,7 +38,7 @@ import static br.com.bernardorufino.android.meetme.Definitions.*;
 import static com.google.android.gms.maps.GoogleMap.*;
 
 public class MapActivity extends BaseActivity {
-    private static final long UPDATE_MAP_INTERVAL = 500;
+    private static final long UPDATE_MAP_INTERVAL = 200;
     // Needs a safe delay from the completion of camera animation to next animation
     private static final long CAMERA_ANIMATION = (long) (0.95 * UPDATE_MAP_INTERVAL - 25);
     private static final long UPDATE_LOCATION_INTERVAL = UPDATE_MAP_INTERVAL * 2;
@@ -83,7 +83,7 @@ public class MapActivity extends BaseActivity {
         }
 
         public void onComplete() {
-            // Check wheter the request was successful, if it was then hide user
+            // Check whether the request was successful, if it was then hide user
             // messages, if not show corresponding messages
             if (exception != null) {
                 toggleAutoZoom.setEnabled(false);
@@ -140,7 +140,11 @@ public class MapActivity extends BaseActivity {
             new AsyncTask<Void, Void, Void>() {
                 protected Void doInBackground(Void... params) {
                     try { user.updatePosition(position); }
-                    catch (IOException e) { /* Empty */ }
+                    catch (IOException e) {
+                        //TODO: Threat errors here in same style as MapUpdater
+                        // This is a reasonable approximation since ALMOST all errors
+                        // thrown here are also thrown in MapUpdater and properly handled
+                    }
                     return null;
                 }
             }.execute();
@@ -163,9 +167,14 @@ public class MapActivity extends BaseActivity {
         // Enable navigate up button
         getActionBar().setDisplayHomeAsUpEnabled(true);
 
-        // Check wheter has play services
+        // Check whether has play services
         if (!Helper.hasPlayServices(this)) {
-            ViewHelper.flash(this, "Nao tem play =(");
+            // Can't show a dialog if I want to redirect right here
+            // in order to show a dialog we need to use some flag to cancel
+            // creation code (onCreate, onStart, ...) and then in the
+            // button callback redirect
+            ViewHelper.flash(this, "Instale Google Play Services");
+            NavUtils.navigateUpFromSameTask(this);
             return;
         }
 
@@ -193,9 +202,9 @@ public class MapActivity extends BaseActivity {
         locationHandler = new LocationHandler();
         locationClient = new LocationClient(this, locationHandler, locationHandler);
         locationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(UPDATE_LOCATION_INTERVAL)
-                .setFastestInterval(MIN_UPDATE_LOCATION_INTERVAL);
+            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+            .setInterval(UPDATE_LOCATION_INTERVAL)
+            .setFastestInterval(MIN_UPDATE_LOCATION_INTERVAL);
 
 
         // Sets up map updater
@@ -219,8 +228,9 @@ public class MapActivity extends BaseActivity {
     private OnMarkerClickListener markerClickHandler = new OnMarkerClickListener() {
 
         public boolean onMarkerClick(Marker marker) {
-            toggleAutoZoom.setChecked(false);
-            toggleAutoZoomClick(toggleAutoZoom);
+            // Debatable whether lines below should or not be commented
+//            toggleAutoZoom.setChecked(false);
+//            toggleAutoZoomClick(toggleAutoZoom);
             return false;
         }
 
@@ -236,10 +246,10 @@ public class MapActivity extends BaseActivity {
             }
             map.setMapType(MAP_TYPE_HYBRID);
             CameraPosition camera = new CameraPosition.Builder()
-                    .target(INITIAL_POSITION)
-                    .zoom(15)
-                    .tilt(30)
-                    .build();
+                .target(INITIAL_POSITION)
+                .zoom(15)
+                .tilt(30)
+                .build();
             map.moveCamera(CameraUpdateFactory.newCameraPosition(camera));
             map.setOnMarkerClickListener(markerClickHandler);
         }
