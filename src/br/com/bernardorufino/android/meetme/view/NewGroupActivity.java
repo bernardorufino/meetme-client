@@ -64,8 +64,8 @@ public class NewGroupActivity extends BaseActivity {
                 if (intent == null) {
                     ViewHelper.flash(NewGroupActivity.this,
                         (Helper.isInternetException(exception))
-                            ? "Preciso de internet =("
-                            : "Ocorreu um erro =("
+                            ? getString(R.string.internet_error)
+                            : getString(R.string.generic_error)
                     );
                     Helper.logException(exception);
                 } else {

@@ -15,4 +15,9 @@
     <string name="enter_group_password_message">Digite o código do grupo existente</string>
     <string name="group_password_hint">Código</string>
     <string name="join_group_with_password_button">Entrar</string>
+    <string name="internet_error">Preciso de internet =(</string>
+    <string name="generic_error">Ocorreu um erro =(</string>
+    <string name="exit_map_confirm_message">
+        Tem certeza que deseja sair? Não poderá retornar como mesmo usuário deste grupo novamente.
+    </string>
 </resources>

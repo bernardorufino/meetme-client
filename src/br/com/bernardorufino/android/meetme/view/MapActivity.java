@@ -1,6 +1,8 @@
 package br.com.bernardorufino.android.meetme.view;
 
+import android.app.AlertDialog;
 import android.app.FragmentManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Point;
 import android.location.Location;
@@ -36,10 +38,9 @@ import java.util.*;
 
 import static br.com.bernardorufino.android.meetme.Definitions.*;
 
-//TODO: test isResquestOpen() with Thread.sleep()
 public class MapActivity extends BaseActivity {
-    private static final long UPDATE_MAP_INTERVAL = 2000;
-    //Needs a safe delay from the completion of camera animation to next animation
+    private static final long UPDATE_MAP_INTERVAL = 500;
+    // Needs a safe delay from the completion of camera animation to next animation
     private static final long CAMERA_ANIMATION = (long) (0.95 * UPDATE_MAP_INTERVAL - 25);
     private static final long UPDATE_LOCATION_INTERVAL = UPDATE_MAP_INTERVAL * 2;
     private static final long MIN_UPDATE_LOCATION_INTERVAL = 500;
@@ -205,7 +206,15 @@ public class MapActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                NavUtils.navigateUpFromSameTask(this);
+                new AlertDialog.Builder(this)
+                    .setMessage(R.string.exit_map_confirm_message)
+                    .setPositiveButton("Sair", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            NavUtils.navigateUpFromSameTask(MapActivity.this);
+                        }
+                    })
+                    .setNegativeButton("Permanecer", null)
+                    .show();
                 break;
         }
         return super.onOptionsItemSelected(item);

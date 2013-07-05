@@ -1,6 +1,7 @@
 package br.com.bernardorufino.android.meetme.view;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.widget.EditText;
 import br.com.bernardorufino.android.meetme.Definitions;
 import br.com.bernardorufino.android.meetme.R;
+import br.com.bernardorufino.android.meetme.helper.Helper;
 import br.com.bernardorufino.android.meetme.helper.ViewHelper;
 import br.com.bernardorufino.android.meetme.model.Group;
 import br.com.bernardorufino.android.meetme.model.User;
@@ -38,7 +40,9 @@ public class JoinGroupActivity extends BaseActivity {
     }
 
     public void joinGroupClick(View view) {
+        final ProgressDialog dialog = ProgressDialog.show(this, "Entrar em Groupo", "Procurando grupo");
         new AsyncTask<Void, Void, Intent>() {
+            private Exception exception;
 
             protected Intent doInBackground(Void... params) {
                 try {
@@ -49,15 +53,23 @@ public class JoinGroupActivity extends BaseActivity {
                     Intent intent = new Intent(JoinGroupActivity.this, MapActivity.class);
                     intent.putExtra(ViewHelper.withNamespace("group"), group);
                     intent.putExtra(ViewHelper.withNamespace("user"), user);
+                    exception = null;
                     return intent;
                 } catch (IOException e) {
+                    exception = e;
                     return null;
                 }
             }
 
             protected void onPostExecute(Intent intent) {
+                dialog.hide();
                 if (intent == null) {
-                    ViewHelper.flash(JoinGroupActivity.this, "deu merda na l.57 do join tio");
+                    ViewHelper.flash(JoinGroupActivity.this,
+                        (Helper.isInternetException(exception))
+                            ? getString(R.string.internet_error)
+                            : getString(R.string.generic_error)
+                    );
+                    Helper.logException(exception);
                 } else {
                     startActivity(intent);
                 }
