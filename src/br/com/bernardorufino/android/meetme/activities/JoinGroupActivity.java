@@ -1,4 +1,4 @@
-package br.com.bernardorufino.android.meetme.view;
+package br.com.bernardorufino.android.meetme.activities;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -14,6 +14,7 @@ import br.com.bernardorufino.android.meetme.helper.ViewHelper;
 import br.com.bernardorufino.android.meetme.model.Group;
 import br.com.bernardorufino.android.meetme.model.GroupsAPI;
 import br.com.bernardorufino.android.meetme.model.User;
+import br.com.bernardorufino.android.meetme.activities.map.MapActivity;
 
 import java.io.IOException;
 
@@ -30,7 +31,7 @@ public class JoinGroupActivity extends BaseActivity {
         // Enable navigate up button
         getActionBar().setDisplayHomeAsUpEnabled(true);
 
-        // Sets up view components
+        // Sets up activities components
         userNameInput = (EditText) findViewById(R.id.userNameInput);
         groupPasswordInput = (EditText) findViewById(R.id.groupPasswordInput);
 

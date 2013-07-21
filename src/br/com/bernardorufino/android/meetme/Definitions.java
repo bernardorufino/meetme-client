@@ -2,6 +2,7 @@ package br.com.bernardorufino.android.meetme;
 
 import com.google.android.gms.maps.model.LatLng;
 
+// TODO: Constants Class ANTI-PATTERN, get rid of this!
 public class Definitions {
 
     public static final String NAMESPACE = Definitions.class.getPackage().getName();

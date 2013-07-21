@@ -1,4 +1,4 @@
-package br.com.bernardorufino.android.meetme.lib;
+package br.com.bernardorufino.android.meetme.lib.location;
 
 import android.location.Location;
 import android.os.Bundle;
@@ -12,7 +12,7 @@ public class LocationAdapter implements LocationClient.ConnectionCallbacks,
 
     public void onConnected(Bundle bundle) { /* Empty */ }
     public void onDisconnected() { /* Empty */ }
-    public void onLocationChanged(Location location) { }
+    public void onLocationChanged(Location location) { /* Empty */ }
     public void onConnectionFailed(ConnectionResult connectionResult) { /* Empty */ }
 
 }

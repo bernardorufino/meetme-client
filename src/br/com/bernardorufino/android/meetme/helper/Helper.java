@@ -22,8 +22,8 @@ public class Helper {
     }
 
     public static void logException(Exception e) {
-        if (e != null)
-            Log.e(LOG_TAG, e.toString(), e);
+        if (e != null) Log.e(LOG_TAG, e.toString(), e);
+        else Log.d(LOG_TAG, "Logging null exception");
     }
 
     public static long time() {

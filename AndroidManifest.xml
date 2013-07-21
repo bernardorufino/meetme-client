@@ -33,7 +33,7 @@
 
 
         <activity
-            android:name=".view.MainActivity"
+            android:name=".activities.MainActivity"
             android:label="@string/app_name">
 
             <intent-filter>
@@ -44,38 +44,38 @@
         </activity>
 
         <activity
-            android:name=".view.MapActivity"
+            android:name=".activities.map.MapActivity"
             android:label="@string/map_activity_label">
 
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="br.com.bernardorufino.android.meetme.view.MainActivity" />
+                android:value="br.com.bernardorufino.android.meetme.activities.MainActivity" />
 
         </activity>
 
         <activity
-            android:name=".view.NewGroupActivity"
+            android:name=".activities.NewGroupActivity"
             android:label="@string/new_group_activity_label">
 
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="br.com.bernardorufino.android.meetme.view.MainActivity" />
+                android:value="br.com.bernardorufino.android.meetme.activities.MainActivity" />
 
         </activity>
 
         <activity
-            android:name=".view.JoinGroupActivity"
+            android:name=".activities.JoinGroupActivity"
             android:label="@string/join_group_activity_label">
 
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="br.com.bernardorufino.android.meetme.view.MainActivity" />
+                android:value="br.com.bernardorufino.android.meetme.activities.MainActivity" />
 
         </activity>
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyAQbHB5IEaW-E2diEWTgoWeJejTRcToGYM" />
+            android:value="AIzaSyC-1-MMPGQ_GK2YxviyKTnYU7O7x25_8Ec" />
 
         <!-- Production -->
         <!-- 2F:AF:F8:DC:1B:FD:F9:01:66:FC:48:D2:07:01:D2:9D:CC:31:D9:9C;br.com.bernardorufino.android.meetme -->
@@ -83,7 +83,7 @@
 
         <!-- Debug -->
         <!-- ED:38:9C:D2:9B:D3:56:1D:3F:C0:5D:41:79:EA:1F:9A:90:FB:8F:07;br.com.bernardorufino.android.meetme -->
-        <!-- AIzaSyAQbHB5IEaW-E2diEWTgoWeJejTRcToGYM -->
+        <!-- AIzaSyC-1-MMPGQ_GK2YxviyKTnYU7O7x25_8Ec -->
 
     </application>
 
